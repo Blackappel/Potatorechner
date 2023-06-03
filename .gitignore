@@ -1,5 +1,6 @@
 # Costum Shit
 *.code-workspace
+.vscode/
 
 # Prerequisites
 *.d
