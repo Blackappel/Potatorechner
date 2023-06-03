@@ -9,6 +9,7 @@
 #include "input.h"
 
 //------------------------------------------------------------- INTERNE TYPEN -
+#define X_IN_AB(x,a,b) ( (x) >= (a) && (x) <= (b) )
 
 /**
  * Implementierung der HasNextFunc.
@@ -70,10 +71,10 @@ void * next (void * old) {
             if (g_string[g_pos] == '/') {
                 PROCESS_SYMBOLES(1,DIV)
             } else
-            if (g_string[g_pos] == '_') {
-                PROCESS_SYMBOLES(1,BASE) // - TODO - Das hier ist noch nicht fertig!
-            } else
-            if (g_string[g_pos] == '^') {
+/*          if (g_string[g_pos] == '_') {  // Implementierung wenn wir mal Bock haben
+*               PROCESS_SYMBOLES(1,BASE) 
+*           } else
+*/          if (g_string[g_pos] == '^') {
                 PROCESS_SYMBOLES(1,EXP)
             } else
             if (g_string[g_pos] == '(') {
@@ -89,12 +90,20 @@ void * next (void * old) {
                     && g_string[g_pos+3] == 't') {
                 PROCESS_SYMBOLES(4,ROT)
             } else
-            if (g_string[g_pos] >= 'a' && g_string[g_pos] >= 'z') {
+            if ( X_IN_AB(g_string[g_pos], 'a', 'z') ) {
                 PROCESS_SYMBOLES(0,VAR) // - TODO - Das hier ist noch nicht fertig!
             } else
-            if ((g_string[g_pos] >= '0' && g_string[g_pos] <= '9') 
-                    || (g_string[g_pos] >= 'A' && g_string[g_pos] <= 'F')) {
-                PROCESS_SYMBOLES(0,NUM) // - TODO - Das hier ist noch nicht fertig!
+            if ( X_IN_AB(g_string[g_pos], '0', '9') 
+                    /* || X_IN_AB(g_string[g_pos], 'A', 'F') */) { // Andere BASEN Auser 10 wenn wir mal Bock haben
+                PROCESS_SYMBOLES(0,NUM)
+                int fount = 0;
+                char * numberStart = g_string[g_pos];
+                double number = 0.0;
+                while ( X_IN_AB(g_string[g_pos], '0', '9') || g_string[g_pos] == '.' ) {
+                    g_pos++;
+                    fount++;
+                }
+                
             } else
             if (g_string[g_pos] == '\0') {
                 PROCESS_SYMBOLES(0,END)
