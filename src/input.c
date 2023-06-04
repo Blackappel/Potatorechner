@@ -6,6 +6,7 @@
 //------------------------------------------------------------------ INCLUDES -
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "input.h"
 
 //------------------------------------------------------------- INTERNE TYPEN -
@@ -91,19 +92,34 @@ void * next (void * old) {
                 PROCESS_SYMBOLES(4,ROT)
             } else
             if ( X_IN_AB(g_string[g_pos], 'a', 'z') ) {
-                PROCESS_SYMBOLES(0,VAR) // - TODO - Das hier ist noch nicht fertig!
+                char * varStart = g_string[g_pos],
+                    * varName,
+                    replacedSymbol = '\0';
+                int varLength = 0;
+                while ( X_IN_AB(g_string[g_pos], 'a', 'z') ) {
+                    g_pos++;
+                    varLength++;
+                }
+                replacedSymbol = g_string[g_pos];
+                g_string[g_pos] = '\0';
+                varName = (char*)malloc(varLength * sizeof(char));
+                strcpy(varName, varStart);
+                g_string[g_pos] = replacedSymbol;
+                temp->type        = VAR;
+                temp->ext.VAR_val = varName;
             } else
             if ( X_IN_AB(g_string[g_pos], '0', '9') 
                     /* || X_IN_AB(g_string[g_pos], 'A', 'F') */) { // Andere BASEN Auser 10 wenn wir mal Bock haben
-                PROCESS_SYMBOLES(0,NUM)
-                int fount = 0;
-                char * numberStart = g_string[g_pos];
+                Bool isDecimal = bool_false;
                 double number = 0.0;
-                while ( X_IN_AB(g_string[g_pos], '0', '9') || g_string[g_pos] == '.' ) {
+                char * numberStart = g_string[g_pos];
+                while ( X_IN_AB(g_string[g_pos], '0', '9') || g_string[g_pos] == '.' && !isDecimal ) {
+                    isDecimal = g_string[g_pos] == '.';
                     g_pos++;
-                    fount++;
                 }
-                
+                number = strtod(numberStart, NULL);
+                temp->type        = NUM;
+                temp->ext.NUM_val = number;
             } else
             if (g_string[g_pos] == '\0') {
                 PROCESS_SYMBOLES(0,END)
