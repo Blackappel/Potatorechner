@@ -24,7 +24,7 @@ typedef enum {
 typedef union u_token_extend {
     double NUM_val;
     int    BASE_val;
-    char   VAR_val;
+    char * VAR_val;
 } TokenExtend;
 
 typedef struct s_token {
@@ -36,6 +36,8 @@ typedef struct s_token {
 /**
  * Deklaration Eines Iterators
  *---------------------------------------------------------------------------*/
+
+typedef void * IteratorElem;
 
 /**
  * Praedikat ob ein nächstes Element vorhanden ist.
@@ -50,7 +52,7 @@ typedef Bool (*HasNextFunc) (void);
  * @return Das naechste Element, NULL wenn es keins gibt. In diesem Fall wird
  *      old ebenfalls freigegeben.
 */
-typedef void * (*GetNextFunc) (void * old);
+typedef IteratorElem (*GetNextFunc) (IteratorElem old);
 
 /**
  * Struktur welche von der Fabrikmethode (Selber zu implementieren) des

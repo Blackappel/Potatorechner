@@ -9,8 +9,11 @@
 #include <string.h>
 #include "input.h"
 
-//------------------------------------------------------------- INTERNE TYPEN -
+//------------------------------------------------------------------- DEFINES -
 #define X_IN_AB(x,a,b) ( (x) >= (a) && (x) <= (b) )
+/*== Verarbeitung von n Zeichen zu einem Token Verwendung in next() =============================*/
+#define PROCESS_SYMBOLES(n, tt) { temp->type = (tt); tokenFound = bool_true; g_pos = g_pos + (n); }
+/*===============================================================================================*/
 
 /**
  * Implementierung der HasNextFunc.
@@ -20,7 +23,7 @@ Bool hasNext (void);
 /**
  * Implementierung der GetNextFunc
 */
-void * next (void * old);
+IteratorElem next (IteratorElem old);
 
 /**
  * Realisiert die Aufnahme der Konsoleneingabe.
@@ -49,91 +52,96 @@ Bool hasNext (void) {
     return (g_pos < g_length) ? bool_true : bool_false;
 }
 
-void * next (void * old) {
-    /*== Verarbeitung von n Zeichen zu einem Token in temp ================================================*/
-    /**/ #define PROCESS_SYMBOLES(n, tt) { temp->type = (tt); tokenFound = bool_true; g_pos = g_pos + (n); }
-    /*=====================================================================================================*/
-    if (hasNext()) {
-        Token * temp;
-        Bool tokenFound = bool_false;
-        
-        temp = (Token*)old;
-   
-        while (!tokenFound && g_pos <= g_length) {
-            if (g_string[g_pos] == '+') {
-                PROCESS_SYMBOLES(1,ADD)
-            } else
-            if (g_string[g_pos] == '-') {
-                PROCESS_SYMBOLES(1,SUB)
-            } else
-            if (g_string[g_pos] == '*') {
-                PROCESS_SYMBOLES(1,MUL)
-            } else
-            if (g_string[g_pos] == '/') {
-                PROCESS_SYMBOLES(1,DIV)
-            } else
-/*          if (g_string[g_pos] == '_') {  // Implementierung wenn wir mal Bock haben
-*               PROCESS_SYMBOLES(1,BASE) 
-*           } else
-*/          if (g_string[g_pos] == '^') {
-                PROCESS_SYMBOLES(1,EXP)
-            } else
-            if (g_string[g_pos] == '(') {
-                PROCESS_SYMBOLES(1,B_OPEN)
-            } else
-            if (g_string[g_pos] == ')') {
-                PROCESS_SYMBOLES(1,B_CLOSE)
-            } else
-            if (g_pos+3 < g_length 
-                    && g_string[g_pos  ] == 'r'
-                    && g_string[g_pos+1] == 'o'
-                    && g_string[g_pos+2] == 'o'
-                    && g_string[g_pos+3] == 't') {
-                PROCESS_SYMBOLES(4,ROT)
-            } else
-            if ( X_IN_AB(g_string[g_pos], 'a', 'z') ) {
-                PROCESS_SYMBOLES(0, VAR)
-                char * varStart = g_string[g_pos],
-                    * varName,
-                    replacedSymbol = '\0';
-                int varLength = 0;
-                while ( X_IN_AB(g_string[g_pos], 'a', 'z') ) {
-                    g_pos++;
-                    varLength++;
-                }
-                replacedSymbol = g_string[g_pos];
-                g_string[g_pos] = '\0';
-                varName = (char*)malloc(varLength * sizeof(char));
-                strcpy(varName, varStart);
-                g_string[g_pos] = replacedSymbol;
-                temp->ext.VAR_val = varName;
-            } else
-            if ( X_IN_AB(g_string[g_pos], '0', '9') 
-                    /* || X_IN_AB(g_string[g_pos], 'A', 'F') */) { // Andere BASEN Auser 10 wenn wir mal Bock haben
-                PROCESS_SYMBOLES(0, NUM)
-                Bool isDecimal = bool_false;
-                double number = 0.0;
-                char * numberStart = g_string[g_pos];
-                while ( X_IN_AB(g_string[g_pos], '0', '9') || g_string[g_pos] == '.' && !isDecimal ) {
-                    isDecimal = g_string[g_pos] == '.';
-                    g_pos++;
-                }
-                number = strtod(numberStart, NULL);
-                temp->ext.NUM_val = number;
-            } else
-            if (g_string[g_pos] == '\0') {
-                PROCESS_SYMBOLES(0,END)
-            }
-        }
-        if (!tokenFound) {
-            temp->type = ERROR;
-        }
-
-        return temp;
-    } else {
+IteratorElem next (IteratorElem old) {
+    if (!hasNext()) {
         free(old);
         return NULL;
     }
+    
+    Token * temp;
+    Bool tokenFound = bool_false;
+    
+    if (old == NULL) {
+        temp = (Token*)calloc(1, sizeof(Token));
+    } else {
+        temp = (Token*)old;
+    }
+
+    if (temp->type == VAR) {
+        free(temp->ext.VAR_val);
+    }
+
+    while (!tokenFound && g_pos <= g_length) {
+        if (g_string[g_pos] == ' ') {
+            g_pos++;
+        } else
+        if (g_string[g_pos] == '+') {
+            PROCESS_SYMBOLES(1,ADD)
+        } else
+        if (g_string[g_pos] == '-') {
+            PROCESS_SYMBOLES(1,SUB)
+        } else
+        if (g_string[g_pos] == '*') {
+            PROCESS_SYMBOLES(1,MUL)
+        } else
+        if (g_string[g_pos] == '/') {
+            PROCESS_SYMBOLES(1,DIV)
+        } else
+/*      if (g_string[g_pos] == '_') {  // Implementierung wenn wir mal Bock haben
+*           PROCESS_SYMBOLES(1,BASE) 
+*       } else
+*/      if (g_string[g_pos] == '^') {
+            PROCESS_SYMBOLES(1,EXP)
+        } else
+        if (g_string[g_pos] == '(') {
+            PROCESS_SYMBOLES(1,B_OPEN)
+        } else
+        if (g_string[g_pos] == ')') {
+            PROCESS_SYMBOLES(1,B_CLOSE)
+        } else
+        if (g_pos+3 < g_length 
+                && g_string[g_pos  ] == 'r'
+                && g_string[g_pos+1] == 'o'
+                && g_string[g_pos+2] == 'o'
+                && g_string[g_pos+3] == 't') {
+            PROCESS_SYMBOLES(4,ROT)
+        } else
+        if ( X_IN_AB(g_string[g_pos], 'a', 'z') ) {
+            PROCESS_SYMBOLES(0, VAR)
+            char * varStart = g_string+g_pos,
+                replacedSymbol = '\0';
+            int varLength = 0;
+            while ( X_IN_AB(g_string[g_pos], 'a', 'z') ) {
+                g_pos++;
+                varLength++;
+            }
+            replacedSymbol = g_string[g_pos];
+            g_string[g_pos] = '\0';
+            temp->ext.VAR_val = malloc(1 + varLength * sizeof(char));
+            strcpy(temp->ext.VAR_val, varStart);
+            g_string[g_pos] = replacedSymbol;
+        } else
+        if ( X_IN_AB(g_string[g_pos], '0', '9') 
+                /* || X_IN_AB(g_string[g_pos], 'A', 'F') */) { // Andere BASEN Auser 10 wenn wir mal Bock haben
+            PROCESS_SYMBOLES(0, NUM)
+            Bool isDecimal = bool_false;
+            char * numberStart = g_string+g_pos;
+            while ( X_IN_AB(g_string[g_pos], '0', '9') || g_string[g_pos] == '.' && !isDecimal ) {
+                isDecimal = g_string[g_pos] == '.';
+                g_pos++;
+            }
+            temp->ext.NUM_val = strtod(numberStart, NULL);
+        } else
+        if (g_string[g_pos] == '\0') {
+            PROCESS_SYMBOLES(0,END)
+        }
+    }
+
+    if (!tokenFound) {
+        temp->type = ERROR;
+    }
+
+    return temp;
 }
 
 void getInputString (char ** result, int * length) {
