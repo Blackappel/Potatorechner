@@ -35,7 +35,7 @@ float theodorus_ite (int interval) {
     int i;
     float ret = 1.0f;
     for (i = 0; i < interval; i++) {
-        ret = sqrtf(ret*ret + 1.f);
+        ret = sqrtf(ret*ret + 1.0f);
     }
 
     return ret;
